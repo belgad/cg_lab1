@@ -1,5 +1,6 @@
 #include <string>
 #include <QImage>
+#include "filter.h"
 
 int main(int argc, char *argv[]) {
 
@@ -12,8 +13,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    img.load(QString(s.c_str()));
-    img.save("Images/source.png");
+    if (s.empty()) {
+        img.load(QString("images/source.png"));
+    }
+    else {
+        img.load(QString(s.c_str()));
+        img.save(QString("images/source.png"));
+    }
+
+    InvertFilter invert;
+    invert.process(img).save("images/invert.png");
 
     return 0;
 }
