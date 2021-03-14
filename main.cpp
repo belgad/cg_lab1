@@ -24,5 +24,11 @@ int main(int argc, char *argv[]) {
     InvertFilter invert;
     invert.process(img).save("images/invert.png");
 
+    BlurFilter blur;
+    blur.process(img).save("images/blur.png");
+
+    GaussianFilter gauss;
+    gauss.process(img).save("images/gauss.png");
+
     return 0;
 }
