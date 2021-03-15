@@ -30,5 +30,26 @@ int main(int argc, char *argv[]) {
     GaussianFilter gauss;
     gauss.process(img).save("images/gauss.png");
 
+    GrayScaleFilter grayScale;
+    grayScale.process(img).save("images/grayScale.png");
+
+    SepiaFilter sepia;
+    sepia.process(img).save("images/sepia.png");
+
+    BrightnessFilter brightness;
+    brightness.process(img).save("images/brightness.png");
+
+    SobelFilterX sobelX;
+    sobelX.process(img).save("images/sobelX.png");
+
+    SobelFilterX sobelY;
+    sobelY.process(img).save("images/sobelY.png");
+
+    SobelFilter sobel;
+    sobel.process(img).save("images/sobel.png");
+
+    SharpnessFilter sharpness;
+    sharpness.process(img).save("images/sharpness.png");
+
     return 0;
 }
