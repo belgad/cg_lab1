@@ -109,8 +109,8 @@ public:
 
 class SobelFilter : public Filter {
 protected:
-    SobelFilterX sobelX;
-    SobelFilterY sobelY;
+//    SobelKernelX sobelKernelX;
+//    SobelKernelY sobelKernelY;
     QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
 };
 
@@ -122,4 +122,12 @@ public:
 class SharpnessFilter : public MatrixFilter {
 public:
     SharpnessFilter();
+};
+
+class SobelFilter_1 : public Filter {
+protected:
+    SobelFilterX sobelX;
+    SobelFilterY sobelY;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+
 };
