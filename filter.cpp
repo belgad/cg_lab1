@@ -182,39 +182,71 @@ SobelFilterY::SobelFilterY() : MatrixFilter(SobelKernelY()) {}
 
 QColor SobelFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
 
-    class SobelKernelX {
-    public:
-        std::size_t getSize() {
-            return 9;
-        }
-        std::size_t getRadius() {
-            return 1;
-        }
-        float operator[](size_t id) {
-            switch(id) {
-            case 0:
-                return -1.f;
-            case 1:
-                return 0.f;
-            case 2:
-                return 1.f;
-            case 3:
-                return -2.f;
-            case 4:
-                return 0.f;
-            case 5:
-                return 2.f;
-            case 6:
-                return -1.f;
-            case 7:
-                return 0.f;
-            case 8:
-                return 1.f;
-            }
-        }
-    };
+//    class KernelX {
+//    public:
+//        std::size_t getSize() {
+//            return 9;
+//        }
+//        std::size_t getRadius() {
+//            return 1;
+//        }
+//        float operator[](size_t id) {
+//            switch(id) {
+//            case 0:
+//                return -1.f;
+//            case 1:
+//                return 0.f;
+//            case 2:
+//                return 1.f;
+//            case 3:
+//                return -2.f;
+//            case 4:
+//                return 0.f;
+//            case 5:
+//                return 2.f;
+//            case 6:
+//                return -1.f;
+//            case 7:
+//                return 0.f;
+//            case 8:
+//                return 1.f;
+//            }
+//        }
+//    };
+//    class KernelY {
+//    public:
+//        std::size_t getSize() {
+//            return 9;
+//        }
+//        std::size_t getRadius() {
+//            return 1;
+//        }
+//        float operator[](size_t id) {
+//            switch(id) {
+//            case 0:
+//                return -1.f;
+//            case 1:
+//                return -2.f;
+//            case 2:
+//                return -1.f;
+//            case 3:
+//                return 0.f;
+//            case 4:
+//                return 0.f;
+//            case 5:
+//                return 0.f;
+//            case 6:
+//                return 1.f;
+//            case 7:
+//                return 2.f;
+//            case 8:
+//                return 1.f;
+//            }
+//        }
+//    };
+//    KernelX sobelKernelX; KernelY sobelKernelY;
 
-    std::size_t sizeX = sobelKernelX.getSize(), lengthX = 2 * sobelKernelX.getRadius() + 1, sizeY = sobelKernelY.getSize(), lengthY = 2 * sobelKernelY.getRadius() + 1;
+    std::size_t sizeX = sobelKernelX.getSize() * sobelKernelX.getSize(), lengthX = sobelKernelX.getSize(), sizeY = sobelKernelY.getSize() * sobelKernelY.getSize(), lengthY = sobelKernelY.getSize();
 
     float redX = 0, greenX = 0, blueX = 0, redY = 0, greenY = 0, blueY = 0;
     for (std::size_t i = 0; i < sizeX; i++) {
@@ -231,7 +263,7 @@ QColor SobelFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
         blueY += tmp.blue() * sobelKernelY[i];
     }
 
-    printf("x: %d\ty: %d\t%f\t%f\t%f\t\t%f\t%f\t%f\n", x, y, redX, greenX, blueX, redY, greenY, blueY);
+//    printf("x: %d\ty: %d\t||\t%.1f\t%.1f\t%.1f\t\t%.1f\t%.1f\t%.1f\n", x, y, redX, greenX, blueX, redY, greenY, blueY);
 
     float returnR = std::sqrt(redX * redX + redY * redY), returnG = std::sqrt(greenX * greenX + greenY * greenY), returnB = std::sqrt(blueX * blueX + blueY * blueY);
 
@@ -254,16 +286,16 @@ SharpnessKernel::SharpnessKernel() : Kernel(1) {
 
 SharpnessFilter::SharpnessFilter() : MatrixFilter(SharpnessKernel()) {}
 
-QColor SobelFilter_1::calcNewPixelColor(const QImage &img, int x, int y) const {
-    QImage imgX = sobelX.process(img.copy(clamp(x - 1, 0, img.width() - 2), clamp(y - 1, 0, img.height() - 2), clamp(x + 3, 0, img.width() - 1) - x, clamp(y + 3, 0, img.height() - 1) - y));
-    QImage imgY = sobelY.process(img.copy(clamp(x, 0, img.width() - 1), clamp(y, 0, img.height() - 1), clamp(x + 3, 0, img.width() - 1) - x, clamp(y + 3, 0, img.height() - 1) - y));
-//    QImage imgX = sobelX.process(img.copy(x - 1, y - 1, 3, 3)), imgY = sobelY.process(img.copy(x - 1, y - 1, 3, 3));
-    QColor color1 = imgX.pixelColor(2, 2), color2 = imgY.pixelColor(2, 2);
-    int redX = color1.red(), greenX = color1.green(), blueX = color1.blue(), redY = color2.red(), greenY = color2.green(), blueY = color2.blue();
+//QColor SobelFilter_1::calcNewPixelColor(const QImage &img, int x, int y) const {
+//    QImage imgX = sobelX.process(img.copy(clamp(x - 1, 0, img.width() - 2), clamp(y - 1, 0, img.height() - 2), clamp(x + 3, 0, img.width() - 1) - x, clamp(y + 3, 0, img.height() - 1) - y));
+//    QImage imgY = sobelY.process(img.copy(clamp(x, 0, img.width() - 1), clamp(y, 0, img.height() - 1), clamp(x + 3, 0, img.width() - 1) - x, clamp(y + 3, 0, img.height() - 1) - y));
+////    QImage imgX = sobelX.process(img.copy(x - 1, y - 1, 3, 3)), imgY = sobelY.process(img.copy(x - 1, y - 1, 3, 3));
+//    QColor color1 = imgX.pixelColor(2, 2), color2 = imgY.pixelColor(2, 2);
+//    int redX = color1.red(), greenX = color1.green(), blueX = color1.blue(), redY = color2.red(), greenY = color2.green(), blueY = color2.blue();
 
-    float returnR = std::sqrt(redX * redX + redY * redY), returnG = std::sqrt(greenX * greenX + greenY * greenY), returnB = std::sqrt(blueX * blueX + blueY * blueY);
+//    float returnR = std::sqrt(redX * redX + redY * redY), returnG = std::sqrt(greenX * greenX + greenY * greenY), returnB = std::sqrt(blueX * blueX + blueY * blueY);
 
-    QColor color(clamp(returnR, 0.f, 255.f), clamp(returnG, 0.f, 255.f), clamp(returnB, 0.f, 255.f));
+//    QColor color(clamp(returnR, 0.f, 255.f), clamp(returnG, 0.f, 255.f), clamp(returnB, 0.f, 255.f));
 
-    return color;
-}
+//    return color;
+//}

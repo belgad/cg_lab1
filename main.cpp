@@ -39,11 +39,11 @@ int main(int argc, char *argv[]) {
 //    BrightnessFilter brightness;
 //    brightness.process(img).save("images/brightness.png");
 
-//    SobelFilterX sobelX;
-//    sobelX.process(img).save("images/sobelX.png");
+    SobelFilterX sobelX;
+    sobelX.process(img).save("images/sobelX.png");
 
-//    SobelFilterX sobelY;
-//    sobelY.process(img).save("images/sobelY.png");
+    SobelFilterY sobelY;
+    sobelY.process(img).save("images/sobelY.png");
 
     SobelFilter sobel;
     sobel.process(img).save("images/sobel.png");
