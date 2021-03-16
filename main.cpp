@@ -21,23 +21,23 @@ int main(int argc, char *argv[]) {
         img.save(QString("images/source.png"));
     }
 
-//    InvertFilter invert;
-//    invert.process(img).save("images/invert.png");
+    InvertFilter invert;
+    invert.process(img).save("images/invert.png");
 
-//    BlurFilter blur;
-//    blur.process(img).save("images/blur.png");
+    BlurFilter blur;
+    blur.process(img).save("images/blur.png");
 
-//    GaussianFilter gauss;
-//    gauss.process(img).save("images/gauss.png");
+    GaussianFilter gauss;
+    gauss.process(img).save("images/gauss.png");
 
-//    GrayScaleFilter grayScale;
-//    grayScale.process(img).save("images/grayScale.png");
+    GrayScaleFilter grayScale;
+    grayScale.process(img).save("images/grayScale.png");
 
-//    SepiaFilter sepia;
-//    sepia.process(img).save("images/sepia.png");
+    SepiaFilter sepia;
+    sepia.process(img).save("images/sepia.png");
 
-//    BrightnessFilter brightness;
-//    brightness.process(img).save("images/brightness.png");
+    BrightnessFilter brightness;
+    brightness.process(img).save("images/brightness.png");
 
     SobelFilterX sobelX;
     sobelX.process(img).save("images/sobelX.png");
@@ -48,11 +48,8 @@ int main(int argc, char *argv[]) {
     SobelFilter sobel;
     sobel.process(img).save("images/sobel.png");
 
-//    SharpnessFilter sharpness;
-//    sharpness.process(img).save("images/sharpness.png");
-
-//    SobelFilter_1 sobel_1;
-//    sobel_1.process(img).save("images/sobel_1.png");
+    SharpnessFilter sharpness;
+    sharpness.process(img).save("images/sharpness.png");
 
     return 0;
 }
