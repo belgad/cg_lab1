@@ -4,6 +4,8 @@
 #include <cmath>
 #include <QImage>
 
+QImage imageDifference(const QImage &img1, const QImage &img2);
+
 class Filter {
 protected:
     virtual QColor calcNewPixelColor(const QImage &img, int x, int y) const = 0;
@@ -27,11 +29,16 @@ protected:
     std::size_t getLen() const;
 
 public:
+    Kernel();
     Kernel(std::size_t radius);
     Kernel(const Kernel &other);
+    Kernel(float *kernel, size_t len);
+    Kernel(std::string path);
 
     std::size_t getRadius() const;
     std::size_t getSize() const;
+    void print() const;
+    void setKernel(float *kernel, size_t len);
     float operator[](std::size_t id) const;
     float& operator[](std::size_t id);
 };
@@ -107,11 +114,13 @@ public:
     SobelFilterY();
 };
 
-class SobelFilter : public Filter {
+class DualFilter : public Filter {
 protected:
-    SobelKernelX sobelKernelX;
-    SobelKernelY sobelKernelY;
+    Kernel kernelX;
+    Kernel kernelY;
     QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    DualFilter(Kernel kernelX, Kernel kernelY);
 };
 
 class SharpnessKernel : public Kernel {
@@ -124,10 +133,137 @@ public:
     SharpnessFilter();
 };
 
-//class SobelFilter_1 : public Filter {
-//protected:
-//    SobelFilterX sobelX;
-//    SobelFilterY sobelY;
-//    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+class GrayWorldFilter : public Filter {
+protected:
+    float avgR, avgG, avgB, avgFull;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    QImage process(const QImage &img);
+};
 
-//};
+class PerfectReflectorFilter : public Filter {
+protected:
+    float maxR, maxG, maxB;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    QImage process(const QImage &img);
+};
+
+class LinearHistogramChange : public Filter {
+protected:
+    float deltaR, deltaG, deltaB, minR, minG, minB;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    QImage process(const QImage &img);
+};
+
+class ScharrKernelX : public Kernel {
+public:
+    ScharrKernelX();
+};
+
+class ScharrKernelY : public Kernel {
+public:
+    ScharrKernelY();
+};
+
+class SobelFilter : public DualFilter {
+public:
+    SobelFilter();
+};
+
+class ScharrFilter : public DualFilter {
+public:
+    ScharrFilter();
+};
+
+class PrewittKernelX : public Kernel {
+public:
+    PrewittKernelX();
+};
+
+class PrewittKernelY : public Kernel {
+public:
+    PrewittKernelY();
+};
+
+class PrewittFilter : public DualFilter {
+public:
+    PrewittFilter();
+};
+
+class Sharpness2Kernel : public Kernel {
+public:
+    Sharpness2Kernel();
+};
+
+class Sharpness2Filter : public MatrixFilter {
+public:
+    Sharpness2Filter();
+};
+
+class MathematicalMorphologyFilter : public MatrixFilter {
+protected:
+    virtual void pixelProcess(int processData, int &storageData) const = 0;
+    struct StdData {
+        int red; int green; int blue;
+    };
+    StdData stdData;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    MathematicalMorphologyFilter(const Kernel &kernel);
+};
+
+class Dilation : public MathematicalMorphologyFilter {
+protected:
+    void pixelProcess(int processData, int &storageData) const;
+public:
+    Dilation(const Kernel &kernel);
+};
+
+class Erosion : public MathematicalMorphologyFilter {
+protected:
+    void pixelProcess(int processData, int &storageData) const;
+public:
+    Erosion(const Kernel &kernel);
+};
+
+class Opening : public MatrixFilter {
+public:
+    Opening(const Kernel &kernel);
+    QImage process(const QImage &img) const override;
+};
+
+class Closing : public MatrixFilter {
+public:
+    Closing(const Kernel &kernel);
+    QImage process(const QImage &img) const override;
+};
+
+class MorphologicalGradient : public MatrixFilter {
+public:
+    MorphologicalGradient(const Kernel &kernel);
+    QImage process(const QImage &img) const override;
+};
+
+class MorphologicalTopHat : public MatrixFilter {
+public:
+    MorphologicalTopHat(const Kernel &kernel);
+    QImage process(const QImage &img) const override;
+};
+
+class MorphologicalBlackHat : public MatrixFilter {
+public:
+    MorphologicalBlackHat(const Kernel &kernel);
+    QImage process(const QImage &img) const override;
+};
+
+class MedianFilter : public Filter {
+protected:
+    int radius;
+    int diameter;
+    int size;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    MedianFilter(size_t radius = 2);
+};

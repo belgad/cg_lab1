@@ -8,6 +8,19 @@ T clamp(T value, T min, T max) {
     return value;
 }
 
+QImage imageDifference(const QImage &img1, const QImage &img2) {
+    if (img1.width() != img2.width() || img1.height() != img2.height()) throw;
+    int width = img1.width(), height = img2.height();
+    QImage result(img1);
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            QColor color1 = img1.pixelColor(i, j), color2 = img2.pixelColor(i, j);
+            result.setPixelColor(i, j, QColor(clamp(color1.red() - color2.red(), 0, 255), clamp(color1.green() - color2.green(), 0, 255), clamp(color1.blue() - color2.blue(), 0, 255)));
+        }
+    }
+    return result;
+}
+
 float Filter::calcColorIntensity(const QColor &color) const {
     float intensity = clamp(0.299f * color.red() + 0.587f * color.green() + 0.114f * color.blue(), 0.f, 255.f);
     return intensity;
@@ -36,15 +49,26 @@ std::size_t Kernel::getLen() const {
     return getSize() * getSize();
 }
 
+Kernel::Kernel() : radius(-1) {}
+
 Kernel::Kernel(std::size_t radius) : radius(radius) {
     data = std::make_unique<float[]>(getLen());
 }
 
 Kernel::Kernel(const Kernel &other) : radius(other.getRadius()) {
-    if (data == nullptr) {
-        data = std::make_unique<float[]>(getLen());
+    if (data) {
+        data.reset();
     }
+    data = std::make_unique<float[]>(getLen());
     std::copy(other.data.get(), other.data.get() + getLen(), data.get());
+}
+
+Kernel::Kernel (float* kernel, size_t radius) : radius(radius) {
+    if (data) {
+        data.reset();
+    }
+    data = std::make_unique<float[]>(getLen());
+    std::copy(kernel, kernel + getLen(), data.get());
 }
 
 std::size_t Kernel::getRadius() const {
@@ -53,6 +77,22 @@ std::size_t Kernel::getRadius() const {
 
 std::size_t Kernel::getSize() const {
     return 2 * radius + 1;
+}
+
+void Kernel::print() const {
+    for (size_t i = 0; i < getLen(); i++) {
+        printf("%.1f\t", data[i]);
+    }
+    printf("\n");
+}
+
+void Kernel::setKernel(float *kernel, size_t len) {
+    radius = len;
+    if (data) {
+        data.reset();
+    }
+    data = std::make_unique<float[]>(getLen());
+    std::copy(kernel, kernel + getLen(), data.get());
 }
 
 float Kernel::operator[](std::size_t id) const {
@@ -100,7 +140,7 @@ GaussianKernel::GaussianKernel(std::size_t radius, float sigma) : Kernel(radius)
     for (int x = -signed_radius; x <= signed_radius; x++) {
         for (int y = -signed_radius; y <= signed_radius; y++) {
             std::size_t idx = (x + radius) * getSize() + y + radius;
-            data[idx] = std::exp(-(x * x + y * y) / (sigma * sigma));
+            data[idx] = std::exp(-(x * x + y * y) / (2 * sigma * sigma));
             norm += data[idx];
         }
     }
@@ -137,133 +177,39 @@ QColor BrightnessFilter::calcNewPixelColor(const QImage &img, int x, int y) cons
 BrightnessFilter::BrightnessFilter(float coefficient) : coefficient(coefficient) {}
 
 SobelKernelX::SobelKernelX() : Kernel(1) {
-    data[0] = -1.f;
-    data[1] = 0.f;
-    data[2] = 1.f;
-    data[3] = -2.f;
-    data[4] = 0.f;
-    data[5] = 2.f;
-    data[6] = -1.f;
-    data[7] = 0.f;
-    data[8] = 1.f;
+    data[0] = -1.f; data[1] = 0.f; data[2] = 1.f;
+    data[3] = -2.f; data[4] = 0.f; data[5] = 2.f;
+    data[6] = -1.f; data[7] = 0.f; data[8] = 1.f;
 }
 
 SobelKernelY::SobelKernelY() : Kernel(1) {
-    data[0] = -1.f;
-    data[1] = -2.f;
-    data[2] = -1.f;
-    data[3] = 0.f;
-    data[4] = 0.f;
-    data[5] = 0.f;
-    data[6] = 1.f;
-    data[7] = 2.f;
-    data[8] = 1.f;
+    data[0] = -1.f; data[1] = -2.f; data[2] = -1.f;
+    data[3] = 0.f;  data[4] = 0.f;  data[5] = 0.f;
+    data[6] = 1.f;  data[7] = 2.f;  data[8] = 1.f;
 }
 
 SobelFilterX::SobelFilterX() : MatrixFilter(SobelKernelX()) {}
 
 SobelFilterY::SobelFilterY() : MatrixFilter(SobelKernelY()) {}
 
-//QImage SobelFilter::process(const QImage &img) const {
-////    imgX.sobelX.process(img), imgY = sobelY.process(img);
-//    QImage result(img), imgX = sobelX.process(img), imgY = sobelY.process(img);
+QColor DualFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
 
-//    for (int x = 0; x < img.width(); x++) {
-//        for (int y = 0; y < img.height(); y++) {
-//            QColor color1 = imgX.pixelColor(x, y), color2 = imgY.pixelColor(x, y);
-//            float returnR = std::sqrt(color1.red() * color1.red() + color2.red() * color2.red()), returnG = std::sqrt(color1.green() * color1.green() + color2.green() * color2.green()), returnB = std::sqrt(color1.blue() * color1.blue() + color2.blue() * color2.blue());
-//            QColor color(clamp(returnR, 0.f, 255.f), clamp(returnG, 0.f, 255.f), clamp(returnB, 0.f, 255.f));
-//            result.setPixelColor(x, y, color);
-//        }
-//    }
-
-//    return result;
-//}
-
-QColor SobelFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
-
-//    class KernelX {
-//    public:
-//        std::size_t getSize() {
-//            return 9;
-//        }
-//        std::size_t getRadius() {
-//            return 1;
-//        }
-//        float operator[](size_t id) {
-//            switch(id) {
-//            case 0:
-//                return -1.f;
-//            case 1:
-//                return 0.f;
-//            case 2:
-//                return 1.f;
-//            case 3:
-//                return -2.f;
-//            case 4:
-//                return 0.f;
-//            case 5:
-//                return 2.f;
-//            case 6:
-//                return -1.f;
-//            case 7:
-//                return 0.f;
-//            case 8:
-//                return 1.f;
-//            }
-//        }
-//    };
-//    class KernelY {
-//    public:
-//        std::size_t getSize() {
-//            return 9;
-//        }
-//        std::size_t getRadius() {
-//            return 1;
-//        }
-//        float operator[](size_t id) {
-//            switch(id) {
-//            case 0:
-//                return -1.f;
-//            case 1:
-//                return -2.f;
-//            case 2:
-//                return -1.f;
-//            case 3:
-//                return 0.f;
-//            case 4:
-//                return 0.f;
-//            case 5:
-//                return 0.f;
-//            case 6:
-//                return 1.f;
-//            case 7:
-//                return 2.f;
-//            case 8:
-//                return 1.f;
-//            }
-//        }
-//    };
-//    KernelX sobelKernelX; KernelY sobelKernelY;
-
-    std::size_t sizeX = sobelKernelX.getSize() * sobelKernelX.getSize(), lengthX = sobelKernelX.getSize(), sizeY = sobelKernelY.getSize() * sobelKernelY.getSize(), lengthY = sobelKernelY.getSize();
+    std::size_t sizeX = kernelX.getSize() * kernelX.getSize(), lengthX = kernelX.getSize(), sizeY = kernelY.getSize() * kernelY.getSize(), lengthY = kernelY.getSize();
 
     float redX = 0, greenX = 0, blueX = 0, redY = 0, greenY = 0, blueY = 0;
     for (std::size_t i = 0; i < sizeX; i++) {
         QColor tmp = img.pixelColor(clamp((int)(x + (i % lengthX) - 1), 0, img.width() - 1), clamp((int)(y + (i / lengthX) - 1), 0, img.height() - 1));
-        redX += tmp.red() * sobelKernelX[i];
-        greenX += tmp.green() * sobelKernelX[i];
-        blueX += tmp.blue() * sobelKernelX[i];
+        redX += tmp.red() * kernelX[i];
+        greenX += tmp.green() * kernelX[i];
+        blueX += tmp.blue() * kernelX[i];
     }
 
     for (std::size_t i = 0; i < sizeY; i++) {
         QColor tmp = img.pixelColor(clamp((int)(x + (i % lengthY) - 1), 0, img.width() - 1), clamp((int)(y + (i / lengthY) - 1), 0, img.height() - 1));
-        redY += tmp.red() * sobelKernelY[i];
-        greenY += tmp.green() * sobelKernelY[i];
-        blueY += tmp.blue() * sobelKernelY[i];
+        redY += tmp.red() * kernelY[i];
+        greenY += tmp.green() * kernelY[i];
+        blueY += tmp.blue() * kernelY[i];
     }
-
-//    printf("x: %d\ty: %d\t||\t%.1f\t%.1f\t%.1f\t\t%.1f\t%.1f\t%.1f\n", x, y, redX, greenX, blueX, redY, greenY, blueY);
 
     float returnR = std::sqrt(redX * redX + redY * redY), returnG = std::sqrt(greenX * greenX + greenY * greenY), returnB = std::sqrt(blueX * blueX + blueY * blueY);
 
@@ -272,30 +218,235 @@ QColor SobelFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
     return color;
 }
 
+DualFilter::DualFilter(Kernel kernelX, Kernel kernelY) : kernelX(kernelX), kernelY(kernelY) {}
+
 SharpnessKernel::SharpnessKernel() : Kernel(1) {
-    data[0] = 0.f;
-    data[1] = -1.f;
-    data[2] = 0.f;
-    data[3] = -1.f;
-    data[4] = 5.f;
-    data[5] = -1.f;
-    data[6] = 0.f;
-    data[7] = -1.f;
-    data[8] = 0.f;
+    data[0] = 0.f;  data[1] = -1.f; data[2] = 0.f;
+    data[3] = -1.f; data[4] = 5.f;  data[5] = -1.f;
+    data[6] = 0.f;  data[7] = -1.f; data[8] = 0.f;
 }
 
 SharpnessFilter::SharpnessFilter() : MatrixFilter(SharpnessKernel()) {}
 
-//QColor SobelFilter_1::calcNewPixelColor(const QImage &img, int x, int y) const {
-//    QImage imgX = sobelX.process(img.copy(clamp(x - 1, 0, img.width() - 2), clamp(y - 1, 0, img.height() - 2), clamp(x + 3, 0, img.width() - 1) - x, clamp(y + 3, 0, img.height() - 1) - y));
-//    QImage imgY = sobelY.process(img.copy(clamp(x, 0, img.width() - 1), clamp(y, 0, img.height() - 1), clamp(x + 3, 0, img.width() - 1) - x, clamp(y + 3, 0, img.height() - 1) - y));
-////    QImage imgX = sobelX.process(img.copy(x - 1, y - 1, 3, 3)), imgY = sobelY.process(img.copy(x - 1, y - 1, 3, 3));
-//    QColor color1 = imgX.pixelColor(2, 2), color2 = imgY.pixelColor(2, 2);
-//    int redX = color1.red(), greenX = color1.green(), blueX = color1.blue(), redY = color2.red(), greenY = color2.green(), blueY = color2.blue();
+QColor GrayWorldFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
+    QColor color = img.pixelColor(x, y);
+    color.setRgb(clamp(avgFull / avgR * color.red(), 0.f, 255.f), clamp(avgFull / avgG * color.green(), 0.f, 255.f), clamp(avgFull / avgB * color.blue(), 0.f, 255.f));
+    return color;
+}
 
-//    float returnR = std::sqrt(redX * redX + redY * redY), returnG = std::sqrt(greenX * greenX + greenY * greenY), returnB = std::sqrt(blueX * blueX + blueY * blueY);
+QImage GrayWorldFilter::process(const QImage &img) {
+    avgR = 0.f; avgG = 0.f; avgB = 0.f; avgFull = 0.f;
+    for (int x = 0; x < img.width(); x++) {
+        for (int y = 0; y < img.height(); y++) {
+            QColor temp = img.pixelColor(x, y);
+            avgR += temp.red();
+            avgG += temp.green();
+            avgB += temp.blue();
+        }
+    }
+    avgR /= img.width() * img.height();
+    avgG /= img.width() * img.height();
+    avgB /= img.width() * img.height();
+    avgFull = (avgR + avgG + avgB) / 3;
 
-//    QColor color(clamp(returnR, 0.f, 255.f), clamp(returnG, 0.f, 255.f), clamp(returnB, 0.f, 255.f));
+    return Filter::process(img);
+}
 
-//    return color;
-//}
+QColor PerfectReflectorFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
+    QColor color = img.pixelColor(x, y);
+    color.setRgb(clamp(255.f / maxR * color.red(), 0.f, 255.f), clamp(255.f / maxG * color.green(), 0.f, 255.f), clamp(255.f / maxB * color.blue(), 0.f, 255.f));
+    return color;
+}
+
+QImage PerfectReflectorFilter::process(const QImage &img) {
+    maxR = 0.f; maxG = 0.f; maxB = 0.f;
+    for (int x = 0; x < img.width(); x++) {
+        for (int y = 0; y < img.height(); y++) {
+            QColor temp = img.pixelColor(x, y);
+            if (maxR < temp.red()) {
+                maxR = temp.red();
+            }
+            if (maxG < temp.green()) {
+                maxG = temp.green();
+            }
+            if (maxB < temp.green()) {
+                maxB = temp.blue();
+            }
+        }
+    }
+
+    return Filter::process(img);
+}
+
+QColor LinearHistogramChange::calcNewPixelColor(const QImage &img, int x, int y) const {
+    QColor color = img.pixelColor(x, y);
+    color.setRgb(clamp(255.f * (color.red() - minR) / deltaR, 0.f, 255.f), clamp(255.f * (color.green() - minG) / deltaG, 0.f, 255.f), clamp(255.f * (color.blue() - minG) / deltaG, 0.f, 255.f));
+    return color;
+}
+
+QImage LinearHistogramChange::process(const QImage &img) {
+    deltaR = 0.f; deltaG = 0.f; deltaB = 0.f; minR = 255.f; minG = 255.f; minB = 255.f;
+    for (int x = 0; x < img.width(); x++) {
+        for (int y = 0; y < img.height(); y++) {
+            QColor temp = img.pixelColor(x, y);
+            if (deltaR < temp.red()) {
+                deltaR = temp.red();
+            }
+            if (minR > temp.red()) {
+                minR = temp.red();
+            }
+            if (deltaG < temp.green()) {
+                deltaG = temp.green();
+            }
+            if (minG > temp.green()) {
+                minG = temp.green();
+            }
+            if (deltaB < temp.green()) {
+                deltaB = temp.blue();
+            }
+            if (minB > temp.blue()) {
+                minB = temp.blue();
+            }
+        }
+    }
+    deltaR -= minR; deltaG -= minG; deltaB -= minB;
+
+    return Filter::process(img);
+}
+
+ScharrKernelX::ScharrKernelX() : Kernel(1) {
+    data[0] = 3.f;  data[1] = 0.f; data[2] = -3.f;
+    data[3] = 10.f; data[4] = 0.f; data[5] = -10.f;
+    data[6] = 3.f;  data[7] = 0.f; data[8] = -3.f;
+}
+
+ScharrKernelY::ScharrKernelY() : Kernel(1) {
+    data[0] = 3.f;  data[1] = 10.f;  data[2] = 3.f;
+    data[3] = 0.f;  data[4] = 0.f;   data[5] = 0.f;
+    data[6] = -3.f; data[7] = -10.f; data[8] = -3.f;
+}
+
+SobelFilter::SobelFilter() : DualFilter(SobelKernelX(), SobelKernelY()) {}
+
+ScharrFilter::ScharrFilter() : DualFilter(ScharrKernelX(), ScharrKernelY()) {}
+
+PrewittKernelX::PrewittKernelX() : Kernel(1) {
+    data[0] = -1.f; data[1] = 0.f; data[2] = 1.f;
+    data[3] = -1.f; data[4] = 0.f; data[5] = 1.f;
+    data[6] = -1.f; data[7] = 0.f; data[8] = 1.f;
+}
+
+PrewittKernelY::PrewittKernelY() : Kernel(1) {
+    data[0] = -1.f; data[1] = -1.f; data[2] = -1.f;
+    data[3] = 0.f;  data[4] = 0.f;  data[5] = 0.f;
+    data[6] = 1.f;  data[7] = 1.f;  data[8] = 1.f;
+}
+
+PrewittFilter::PrewittFilter() : DualFilter(PrewittKernelX(), PrewittKernelY()) {}
+
+Sharpness2Kernel::Sharpness2Kernel() : Kernel(1) {
+    data[0] = -1.f; data[1] = -1.f; data[2] = -1.f;
+    data[3] = -1.f; data[4] = 9.f;  data[5] = -1.f;
+    data[6] = -1.f; data[7] = -1.f; data[8] = -1.f;
+}
+
+Sharpness2Filter::Sharpness2Filter() : MatrixFilter(Sharpness2Kernel()) {}
+
+QColor MathematicalMorphologyFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
+    int returnR = stdData.red, returnG = stdData.green, returnB = stdData.blue;
+    int size = mKernel.getSize();
+    int radius = mKernel.getRadius();
+
+    for (int i = -radius; i <= radius; i++) {
+        for (int j = -radius; j <= radius; j++) {
+            int idx = (i + radius) * size + j + radius;
+            if (mKernel[idx]) {
+                QColor color = img.pixelColor(clamp(x + j, 0, img.width() - 1), clamp(y + i, 0, img.height() - 1));
+                pixelProcess(color.red(), returnR);
+                pixelProcess(color.green(), returnG);
+                pixelProcess(color.blue(), returnB);
+            }
+        }
+    }
+
+    return QColor(clamp(returnR, 0, 255), clamp(returnG, 0, 255), clamp(returnB, 0, 255));
+}
+
+MathematicalMorphologyFilter::MathematicalMorphologyFilter(const Kernel &kernel) : MatrixFilter(kernel) {}
+
+void Dilation::pixelProcess(int processData, int &storageData) const {
+    storageData = std::max(processData, storageData);
+}
+
+Dilation::Dilation(const Kernel &kernel) : MathematicalMorphologyFilter(kernel) {
+    stdData.red = 0; stdData.green = 0; stdData.blue = 0;
+}
+
+void Erosion::pixelProcess(int processData, int &storageData) const {
+    storageData = std::min(processData, storageData);
+}
+
+Erosion::Erosion(const Kernel &kernel) : MathematicalMorphologyFilter(kernel) {
+    stdData.red = 255; stdData.green = 255; stdData.blue = 255;
+}
+
+Opening::Opening(const Kernel &kernel) : MatrixFilter(kernel) {}
+
+QImage Opening::process(const QImage &img) const {
+    Dilation dilation(mKernel);
+    Erosion erosion(mKernel);
+    return dilation.process(erosion.process(img));
+}
+
+Closing::Closing(const Kernel &kernel) : MatrixFilter(kernel) {}
+
+QImage Closing::process(const QImage &img) const {
+    Dilation dilation(mKernel);
+    Erosion erosion(mKernel);
+    return erosion.process(dilation.process(img));
+}
+
+MorphologicalGradient::MorphologicalGradient(const Kernel &kernel) : MatrixFilter(kernel) {}
+
+QImage MorphologicalGradient::process(const QImage &img) const {
+    Dilation dilation(mKernel);
+    Erosion erosion(mKernel);
+
+    return imageDifference(dilation.process(img), erosion.process(img));
+}
+
+MorphologicalTopHat::MorphologicalTopHat(const Kernel &kernel) : MatrixFilter(kernel) {}
+
+QImage MorphologicalTopHat::process(const QImage &img) const {
+    Opening opening(mKernel);
+
+    return imageDifference(img, opening.process(img));
+}
+
+MorphologicalBlackHat::MorphologicalBlackHat(const Kernel &kernel) : MatrixFilter(kernel) {}
+
+QImage MorphologicalBlackHat::process(const QImage &img) const {
+    Closing closing(mKernel);
+
+    return imageDifference(closing.process(img), img);
+}
+
+QColor MedianFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
+    int red[size], green[size], blue[size];
+    for (int i = 0; i < diameter; i++) {
+        for (int j = 0; j < diameter; j++) {
+            QColor temp = img.pixelColor(clamp(x + i - radius, 0, img.width() - 1), clamp(y + j - radius, 0, img.width() - 1));
+            red[i * diameter + j] = temp.red();
+            green[i * diameter + j] = temp.green();
+            blue[i * diameter + j] = temp.blue();
+        }
+    }
+
+    std::sort(red, red + size);
+    std::sort(green, green + size);
+    std::sort(blue, blue + size);
+
+    return QColor(red[size / 2], green[size / 2], blue[size / 2]);
+}
+
+MedianFilter::MedianFilter(size_t radius) : radius(radius), diameter(2 * radius + 1), size(diameter * diameter) {}
