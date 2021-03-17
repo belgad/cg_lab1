@@ -450,3 +450,129 @@ QColor MedianFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
 }
 
 MedianFilter::MedianFilter(size_t radius) : radius(radius), diameter(2 * radius + 1), size(diameter * diameter) {}
+
+QColor BaseColorCorrection::calcNewPixelColor(const QImage &img, int x, int y) const {
+    QColor color = img.pixelColor(x, y);
+    color.setRgb(clamp(coeffR * color.red(), 0.f, 255.f), clamp(coeffG * color.green(), 0.f, 255.f), clamp(coeffB * color.blue(), 0.f, 255.f));
+    return color;
+}
+
+BaseColorCorrection::BaseColorCorrection(float coeffR, float coeffG, float coeffB) : coeffR(coeffR), coeffG(coeffG), coeffB(coeffB) {}
+
+BaseColorCorrection::BaseColorCorrection(int sourceR, int sourceG, int sourceB, int destR, int destG, int destB) : coeffR(float(destR) / float(sourceR)), coeffG(float(destG) / float(sourceG)), coeffB(float(destB) / float(sourceB)) {}
+
+QImage BaseColorCorrection::process(const QImage &img) const {
+    return Filter::process(img);
+}
+
+QImage BaseColorCorrection::process(const QImage &img, int sourceX, int sourceY, int destR, int destG, int destB) {
+    float baseR = coeffR, baseG = coeffG, baseB = coeffB;
+    QColor color = img.pixelColor(sourceX, sourceY);
+    coeffR = (float(destR) / float(color.red()));
+    coeffG = (float(destG) / float(color.green()));
+    coeffB = (float(destB) / float(color.blue()));
+
+    QImage result = Filter::process(img);
+    coeffR = baseR; coeffG = baseG; coeffB = baseB;
+
+    return result;
+}
+
+QColor MoveFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
+    x += deltaX; y += deltaY;
+    if (clamp(x, 0, img.width() - 1) == x && clamp(y, 0, img.height() - 1) == y) {
+        return img.pixelColor(x, y);
+    } else {
+        return QColor(0, 0, 0);
+    }
+}
+
+MoveFilter::MoveFilter(int deltaX, int deltaY) : deltaX(deltaX), deltaY(deltaY) {}
+
+QImage MoveFilter::process(const QImage &img) const {
+    return Filter::process(img);
+}
+
+QImage MoveFilter::process(const QImage &img, int dX, int dY) {
+    float baseDX = deltaX, baseDY = deltaY;
+    deltaX = dX; deltaY = dY;
+    QImage result = Filter::process(img);
+    deltaX = baseDX; deltaY = baseDY;
+    return result;
+}
+
+QColor RotateFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
+//    float tmpX = x + centerX * (cos(angle) - 1) - centerY * sin(angle), tmpY = y + centerX * sin(angle) + centerY * (cos(angle) - 1);
+//    x = cos(angle) * tmpX + sin(angle) * tmpY;
+//    y = cos(angle) * tmpY - sin(angle) * tmpX;
+    int tmpX = (x - centerX) * cos(angle) - (y - centerY) * sin(angle) + centerY, tmpY = (x - centerX) * sin(angle) + (y - centerY) * cos(angle) + centerY;
+    if (clamp(tmpX, 0, img.width() - 1) == tmpX && clamp(tmpY, 0, img.height() - 1) == tmpY) {
+        return img.pixelColor(tmpX, tmpY);
+    } else {
+        return QColor(0, 0, 0);
+    }
+
+}
+
+RotateFilter::RotateFilter(int centerX, int centerY, float angle) : centerX(centerX), centerY(centerY), angle(angle) {}
+
+QImage RotateFilter::process(const QImage &img) const {
+    return Filter::process(img);
+}
+
+QImage RotateFilter::process(const QImage &img, int cX, int cY, float ang) {
+    int baseX = centerX, baseY = centerY;
+    float baseAngle = angle;
+    centerX = cX; centerY = cY; angle = ang;
+    QImage result = Filter::process(img);
+    centerX = baseX; centerY = baseY; angle = baseAngle;
+    return result;
+}
+
+QColor WavesFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
+    int tmpX = x + 20 * sin(2 * M_PI * (filterType == 0 ? x : y) / coefficient);
+    if (clamp(tmpX, 0, img.width() - 1) == tmpX) {
+        return img.pixelColor(tmpX, y);
+    }
+    else {
+        return QColor(0, 0, 0);
+    }
+}
+
+WavesFilter::WavesFilter(float sigma, int filterType) : coefficient(sigma), filterType(static_cast<WavesFilterType>(filterType)) {}
+
+QImage WavesFilter::process(const QImage &img) const {
+    return Filter::process(img);
+}
+
+QImage WavesFilter::process(const QImage &img, float sigma, int filterAxis) {
+    float baseCoeff = coefficient; WavesFilterType baseType = filterType;
+    coefficient = sigma; filterType = static_cast<WavesFilterType>(filterAxis);
+    QImage result = Filter::process(img);
+    coefficient = baseCoeff; filterType = baseType;
+    return result;
+}
+
+QColor GlassFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
+    int tmpX = x + 10 * (1.f / rand() - 0.5f), tmpY = y + 10 * (1.f / rand() - 0.5f);
+    return img.pixelColor(clamp(tmpX, 0, img.width() - 1), clamp(tmpY, 0, img.height() - 1));
+}
+
+GlassFilter::GlassFilter() {
+    srand(static_cast<unsigned int>(time(0)));
+}
+
+MotionBlurKernel::MotionBlurKernel(size_t n) : Kernel(n) {
+    for (size_t i = 0; i < n ; i++) {
+        for (size_t j = 0; j < n; j++) {
+            if (i == j) {
+                data[i * n + j] = 1.f / n;
+            }
+            else {
+                data[i * n + j] = 0.f;
+            }
+        }
+    }
+}
+
+MotionBlurFilter::MotionBlurFilter(size_t n) : MatrixFilter(MotionBlurKernel(n)) {}

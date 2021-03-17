@@ -207,8 +207,7 @@ protected:
     virtual void pixelProcess(int processData, int &storageData) const = 0;
     struct StdData {
         int red; int green; int blue;
-    };
-    StdData stdData;
+    } stdData;
     QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
 public:
     MathematicalMorphologyFilter(const Kernel &kernel);
@@ -266,4 +265,64 @@ protected:
     QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
 public:
     MedianFilter(size_t radius = 2);
+};
+
+class BaseColorCorrection : public Filter {
+protected:
+    float coeffR, coeffG, coeffB;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    BaseColorCorrection(float coeffR = 1.f, float coeffG = 1.f, float coeffB = 1.f);
+    BaseColorCorrection(int sourceR, int sourceG, int sourceB, int destR, int destG, int destB);
+    QImage process(const QImage &img) const override;
+    QImage process(const QImage &img, int sourceX, int sourceY, int destR, int destG, int destB);
+};
+
+class MoveFilter : public Filter {
+protected:
+    int deltaX, deltaY;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    MoveFilter(int deltaX = 0, int deltaY = 0);
+    QImage process(const QImage &img) const override;
+    QImage process(const QImage &img, int dX, int dY);
+};
+
+class RotateFilter : public Filter {
+    int centerX, centerY;
+    float angle;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    RotateFilter(int centerX = 0, int centerY = 0, float angle = 0);
+    QImage process(const QImage &img) const override;
+    QImage process(const QImage &img, int cX, int cY, float ang);
+};
+
+class WavesFilter : public Filter {
+protected:
+    typedef enum {x, y} WavesFilterType;
+    float coefficient;
+    WavesFilterType filterType;
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    WavesFilter(float sigma = 30.f, int filterType = 0);
+    QImage process(const QImage &img) const override;
+    QImage process(const QImage &img, float sigma, int filterType = 0);
+};
+
+class GlassFilter : public Filter {
+protected:
+    QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
+public:
+    GlassFilter();
+};
+
+class MotionBlurKernel : public Kernel {
+public:
+    MotionBlurKernel(size_t n = 10);
+};
+
+class MotionBlurFilter : public MatrixFilter {
+public:
+    MotionBlurFilter(size_t n = 10);
 };

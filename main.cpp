@@ -138,8 +138,27 @@ int main(int argc, char *argv[]) {
 //    MorphologicalBlackHat morphBlackHat(mathMorphologyKernel);
 //    morphBlackHat.process(img).save("images/morphBlackHat.png");
 
-    MedianFilter median;
-    median.process(img).save("images/median.png");
+//    MedianFilter median;
+//    median.process(img).save("images/median.png");
+
+//    BaseColorCorrection baseColor;
+//    baseColor.process(img).save("images/baseColor.png");
+
+//    MoveFilter move;
+//    move.process(img, 50, 0).save("images/move.png");
+
+//    RotateFilter rotate;
+//    rotate.process(img, img.width() / 2, img.height() / 2, M_PI_4).save("images/rotate.png");
+
+//    WavesFilter waves;
+//    waves.process(img, 60, 0).save("images/waves1.png");
+//    waves.process(img, 30, 1).save("images/waves2.png");
+
+    GlassFilter glass;
+    glass.process(img).save("images/glass.png");
+
+    MotionBlurFilter motionBlur;
+    motionBlur.process(img).save("images/motionBlur.png");
 
     return 0;
 }
