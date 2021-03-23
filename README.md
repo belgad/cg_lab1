@@ -18,13 +18,13 @@ Standart filters for image processing
 12. Scharr filter
 13. Prewitt filter
 14. Operation of mathematical morphology
-  1. Dilation
-  2. Erosion
-  3. Opening
-  4. Closing
-  5. Morphological gradient
-  6. Top Hat
-  7. Black Hat
+    1. Dilation
+    2. Erosion
+    3. Opening
+    4. Closing
+    5. Morphological gradient
+    6. Top Hat
+    7. Black Hat
 15. Median filter
 16. Move filter
 17. Rotate filter
