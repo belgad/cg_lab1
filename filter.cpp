@@ -21,7 +21,7 @@ QImage imageDifference(const QImage &img1, const QImage &img2) {
     return result;
 }
 
-float Filter::calcColorIntensity(const QColor &color) const {
+float Filter::calcColorIntensity(const QColor &color) {
     float intensity = clamp(0.299f * color.red() + 0.587f * color.green() + 0.114f * color.blue(), 0.f, 255.f);
     return intensity;
 }
@@ -278,13 +278,13 @@ QImage PerfectReflectorFilter::process(const QImage &img) {
     return Filter::process(img);
 }
 
-QColor LinearHistogramChange::calcNewPixelColor(const QImage &img, int x, int y) const {
+QColor HistogramLinearChange::calcNewPixelColor(const QImage &img, int x, int y) const {
     QColor color = img.pixelColor(x, y);
     color.setRgb(clamp(255.f * (color.red() - minR) / deltaR, 0.f, 255.f), clamp(255.f * (color.green() - minG) / deltaG, 0.f, 255.f), clamp(255.f * (color.blue() - minG) / deltaG, 0.f, 255.f));
     return color;
 }
 
-QImage LinearHistogramChange::process(const QImage &img) {
+QImage HistogramLinearChange::process(const QImage &img) {
     deltaR = 0.f; deltaG = 0.f; deltaB = 0.f; minR = 255.f; minG = 255.f; minB = 255.f;
     for (int x = 0; x < img.width(); x++) {
         for (int y = 0; y < img.height(); y++) {
@@ -554,7 +554,7 @@ QImage WavesFilter::process(const QImage &img, float sigma, int filterAxis) {
 }
 
 QColor GlassFilter::calcNewPixelColor(const QImage &img, int x, int y) const {
-    int tmpX = x + 10 * (1.f / rand() - 0.5f), tmpY = y + 10 * (1.f / rand() - 0.5f);
+    int tmpX = x + 10 * (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5f), tmpY = y + 10 * (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5f);
     return img.pixelColor(clamp(tmpX, 0, img.width() - 1), clamp(tmpY, 0, img.height() - 1));
 }
 
