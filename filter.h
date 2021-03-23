@@ -9,7 +9,7 @@ QImage imageDifference(const QImage &img1, const QImage &img2);
 class Filter {
 protected:
     virtual QColor calcNewPixelColor(const QImage &img, int x, int y) const = 0;
-    float calcColorIntensity(const QColor &color) const;
+    static float calcColorIntensity(const QColor &color);
 
 public:
     virtual ~Filter() = default;
@@ -149,7 +149,7 @@ public:
     QImage process(const QImage &img);
 };
 
-class LinearHistogramChange : public Filter {
+class HistogramLinearChange : public Filter {
 protected:
     float deltaR, deltaG, deltaB, minR, minG, minB;
     QColor calcNewPixelColor(const QImage &img, int x, int y) const override;
