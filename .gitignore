@@ -1,5 +1,7 @@
 build/
+CMakeFiles/
+
 *.pro.user*
 
 images/original/*
-images/original/mathMorphologyKernel
+!images/original/mathMorphologyKernel
