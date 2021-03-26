@@ -1,6 +1,25 @@
-image:
-- Ubuntu
-- Visual Studio 2019
+environment:
+  matrix:
+  - job_name: Windows Build
+    appveyor_build_worker_image: Visual Studio 2019
 
-build_script:
-- cmake
+  - job_name: Linux Build
+    appveyor_build_worker_image: Ubuntu
+
+before_build: 
+- mkdir build
+  cd build
+
+for:
+- matrix:
+    only:
+    - job_name: Windows Build
+  build_script:
+  - cmake -G "MinGW Makefiles" -S .. -B .
+    cmake --build .
+- matrix:
+    only:
+    - job_name: Linux Build
+  build_script:
+  - cmake -G "Unix Makefiles" -S .. -B .
+    cmake --build .
