@@ -13,13 +13,13 @@ before_build:
 for:
 - matrix:
     only:
-      job_name: Windows Build
+      - job_name: Windows Build
   build_script:
   - cmake -G "MinGW Makefiles" -S .. -B .
   - cmake --build .
 - matrix:
     only:
-      job_name: Linux Build
+      - job_name: Linux Build
   build_script:
   - cmake -G "Unix Makefiles" -S .. -B .
   - cmake --build .
