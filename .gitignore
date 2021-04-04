@@ -3,5 +3,7 @@ CMakeFiles/
 
 *.pro.user*
 
-images/original/*
+images/*
+!images/source.png
+!images/original/source*.png
 !images/original/mathMorphologyKernel
