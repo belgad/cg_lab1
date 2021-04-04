@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     int mathMorphologyKernelSize = 0;
     Kernel mathMorphologyKernel;
 
-//    mathMorphologyKernelPath = "images/mathMorphologyKernel"; mathMorphology = true;
+    mathMorphologyKernelPath = "images/mathMorphologyKernel"; mathMorphology = true;
 
     QImage img;
 
@@ -69,23 +69,23 @@ int main(int argc, char *argv[]) {
         temp.reset();
     }
 
-    InvertFilter invert;
-    invert.process(img).save("images/invert.png");
+//    InvertFilter invert;
+//    invert.process(img).save("images/invert.png");
 
-    BlurFilter blur;
-    blur.process(img).save("images/blur.png");
+//    BlurFilter blur;
+//    blur.process(img).save("images/blur.png");
 
-    GaussianFilter gauss;
-    gauss.process(img).save("images/gauss.png");
+//    GaussianFilter gauss;
+//    gauss.process(img).save("images/gauss.png");
 
-    GrayScaleFilter grayScale;
-    grayScale.process(img).save("images/grayScale.png");
+//    GrayScaleFilter grayScale;
+//    grayScale.process(img).save("images/grayScale.png");
 
-    SepiaFilter sepia;
-    sepia.process(img).save("images/sepia.png");
+//    SepiaFilter sepia;
+//    sepia.process(img).save("images/sepia.png");
 
-    BrightnessFilter brightness;
-    brightness.process(img).save("images/brightness.png");
+//    BrightnessFilter brightness;
+//    brightness.process(img).save("images/brightness.png");
 
     SobelFilterX sobelX;
     sobelX.process(img).save("images/sobelX.png");
@@ -93,17 +93,17 @@ int main(int argc, char *argv[]) {
     SobelFilterY sobelY;
     sobelY.process(img).save("images/sobelY.png");
 
-    SharpnessFilter sharpness;
-    sharpness.process(img).save("images/sharpness.png");
+//    SharpnessFilter sharpness;
+//    sharpness.process(img).save("images/sharpness.png");
 
-    GrayWorldFilter grayWorld;
-    grayWorld.process(img).save("images/grayWorld.png");
+//    GrayWorldFilter grayWorld;
+//    grayWorld.process(img).save("images/grayWorld.png");
 
-    PerfectReflectorFilter perfectReflector;
-    perfectReflector.process(img).save("images/perfectReflector.png");
+//    PerfectReflectorFilter perfectReflector;
+//    perfectReflector.process(img).save("images/perfectReflector.png");
 
-    HistogramLinearChange histogramLinearChange;
-    histogramLinearChange.process(img).save("images/histogramLinearChange.png");
+//    HistogramLinearChange histogramLinearChange;
+//    histogramLinearChange.process(img).save("images/histogramLinearChange.png");
 
     SobelFilter sobel;
     sobel.process(img).save("images/sobel.png");
@@ -114,8 +114,8 @@ int main(int argc, char *argv[]) {
     PrewittFilter prewitt;
     prewitt.process(img).save("images/prewitt.png");
 
-    Sharpness2Filter sharpness2;
-    sharpness2.process(img).save("images/sharpness2.png");
+//    Sharpness2Filter sharpness2;
+//    sharpness2.process(img).save("images/sharpness2.png");
 
     Dilation dilation(mathMorphologyKernel);
     dilation.process(img).save("images/dilation.png");
@@ -138,27 +138,27 @@ int main(int argc, char *argv[]) {
     MorphologicalBlackHat morphBlackHat(mathMorphologyKernel);
     morphBlackHat.process(img).save("images/morphBlackHat.png");
 
-    MedianFilter median;
-    median.process(img).save("images/median.png");
+//    MedianFilter median;
+//    median.process(img).save("images/median.png");
 
-    BaseColorCorrection baseColor(0.67f, 0.34f, 0.18f);
-    baseColor.process(img).save("images/baseColor.png");
+//    BaseColorCorrection baseColor(0.67f, 0.34f, 0.18f);
+//    baseColor.process(img).save("images/baseColor.png");
 
-    MoveFilter move;
-    move.process(img, 50, 0).save("images/move.png");
+//    MoveFilter move;
+//    move.process(img, 50, 0).save("images/move.png");
 
-    RotateFilter rotate;
-    rotate.process(img, img.width() / 2, img.height() / 2, M_PI_4).save("images/rotate.png");
+//    RotateFilter rotate;
+//    rotate.process(img, img.width() / 2, img.height() / 2, M_PI_4).save("images/rotate.png");
 
-    WavesFilter waves;
-    waves.process(img, 60, 0).save("images/waves1.png");
-    waves.process(img, 30, 1).save("images/waves2.png");
+//    WavesFilter waves;
+//    waves.process(img, 60, 0).save("images/waves1.png");
+//    waves.process(img, 30, 1).save("images/waves2.png");
 
-    GlassFilter glass;
-    glass.process(img).save("images/glass.png");
+//    GlassFilter glass;
+//    glass.process(img).save("images/glass.png");
 
-    MotionBlurFilter motionBlur;
-    motionBlur.process(img).save("images/motionBlur.png");
+//    MotionBlurFilter motionBlur;
+//    motionBlur.process(img).save("images/motionBlur.png");
 
     return 0;
 }
